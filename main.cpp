@@ -8,18 +8,18 @@
 #include  "Flash.h"
 #include <string>
 #define SIMPLE_POST_REQUEST2 \
-    "POST /server_api?lan=zh&cuid=30-10-B3-4A-D9-13&token=24.31aea138d109b14113de97b7769c5552.2592000.1511531377.282335-9731315 HTTP/1.1\r\n" \
-    "Host:vop.baidu.com\r\n" \
-    "Content-Type: audio/pcm;rate=8000;\r\n"\
-		"Content-Length:%d\r\n" \
-		"Connection:Keep-Alive:9000\r\n" \
-    "\r\n" \
+	"POST /server_api?lan=zh&cuid=30-10-B3-4A-D9-13&token=24.31aea138d109b14113de97b7769c5552.2592000.1511531377.282335-9731315 HTTP/1.1\r\n" \
+   	 "Host:vop.baidu.com\r\n" \
+    	"Content-Type: audio/pcm;rate=8000;\r\n"\
+	"Content-Length:%d\r\n" \
+	"Connection:Keep-Alive:9000\r\n" \
+    	"\r\n" \
 
 #define SIMPLE_GET_REQUEST1 \
-    "GET https://openapi.baidu.com/oauth/2.0/token?grant_type=client_credentials&client_id=CvKkS689K2PCzhQPY4AbWXHy&client_secret=804ba5c62e2ad6fec6e3de25414b76c2 HTTP/1.1\r\n" \
-    "Host: https://openapi.baidu.com\r\n" \
-		"Content-Type:application/json;\r\n"\
-		"\r\n" \	
+	"GET https://openapi.baidu.com/oauth/2.0/token?grant_type=client_credentials&client_id=CvKkS689K2PCzhQPY4AbWXHy&client_secret=804ba5c62e2ad6fec6e3de25414b76c2 HTTP/1.1\r\n" \
+    	"Host: https://openapi.baidu.com\r\n" \
+	"Content-Type:application/json;\r\n"\
+	"\r\n" \	
 		
 MXCHIPInterface wifi(D1,D0,921600);
 
@@ -33,7 +33,6 @@ Message  r_message;
 dmic_test dm;
 TCPSocket tcpsocket;
 
-//Serial _seri(D1,D0);
 int speech_length;
 int length;
 int b_length;
@@ -58,46 +57,21 @@ uint8_t buffer[2048]="0";
 unsigned char *speech_data=NULL;
 char *content=NULL;
 void rdRange(unsigned long rd_start_address, unsigned long rd_end_address)
-{		
-	  
-		unsigned int i, j ;
-
-    unsigned long current_address = rd_start_address;	
-    for (i = rd_start_address ; current_address < rd_end_address-10*256 ; i++ ) {    
-				
-					speech_data=spi_mx25r.read2K(current_address,16384);
-					current_address = current_address + 16384;			
-			    for(j=0;j<16;j++)
-					{
-//						wait_ms(5);
-						tcpsocket.send(speech_data+j*1024,1024);
-					}				
-
-						delete []spi_mx25r.data1;
-						spi_mx25r.data1=NULL;       
-         }			
-		
-	
+{			  
+	unsigned int i, j ;
+	unsigned long current_address = rd_start_address;	
+	for (i = rd_start_address ; current_address < rd_end_address ; i++ ) {    
+		speech_data=spi_mx25r.read2K(current_address,16384);
+		current_address = current_address + 16384;			
+		for(j=0;j<16;j++)
+		{
+			tcpsocket.send(speech_data+j*1024,1024);
+		}		
+		delete []spi_mx25r.data1;
+		spi_mx25r.data1=NULL;       
+         }				
 }
 
-
-void rdRange1(unsigned long rd_start_address, unsigned long rd_end_address)
-{		
-	  
-		unsigned int i, j ;
-    unsigned long current_address = rd_start_address ;	
-    for (i = rd_start_address ; current_address < rd_end_address ; i++ ) {    
-				
-					speech_data=spi_mx25r.read2K(current_address,256);
-					current_address = current_address + 256;			
-//			    for(j=0;j<8;j++)
-//					{
-						USART_WriteBlocking(USART0,speech_data+j*2048,2048);
-//					}				
-						delete []spi_mx25r.data1;
-						spi_mx25r.data1=NULL;       
-         }			
-}
 						
 void  detect1()
 {
@@ -107,79 +81,73 @@ void detect()
 {
 	char *a="hello";
 	if(time1==0)
-		{
-			num++;
-		}
-		else {
-			num=0;	
-			time1=0;
-		}
-		if(num>2&&times>20)
-		{
-			c=0;
-		}
+	{
+		num++;
+	}
+	else {
+		num=0;	
+		time1=0;
+	}
+	if(num>2&&times>20)
+	{
+		c=0;
+	}
 		
 }
 
 void save_data()
 {
-
 	if(flag1==1)
-			{
-
-				for(int i=0;i<1024;i++)
-			  {
-					buffer[i*2+1]=( (dmic_buffer[i]>>8) &0x00ff );
-				  buffer[i*2+0]=( dmic_buffer[i] &0x00ff );
-			  }
-
-			 spi_mx25r.writeEnable();
-			 while(!(spi_mx25r.readStatus()&0x02));
-			 spi_mx25r.programPage(0+times*256,buffer,256);
-			 while((spi_mx25r.readStatus()&0x03));
-			 	times++;
-			 spi_mx25r.writeEnable();
-			 while(!(spi_mx25r.readStatus()&0x02));
-			 spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[256],256);
-			 while((spi_mx25r.readStatus()&0x03));			 
-			 times++;
-						 spi_mx25r.writeEnable();
-			 while(!(spi_mx25r.readStatus()&0x02));
-			 spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[512],256);
-			 while((spi_mx25r.readStatus()&0x03));
-			 	times++;
-			 spi_mx25r.writeEnable();
-			 while(!(spi_mx25r.readStatus()&0x02));
-			 spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[768],256);
-			 while((spi_mx25r.readStatus()&0x03));			 
-			 times++;	
+	{
+		for(int i=0;i<1024;i++)
+		 {
+			buffer[i*2+1]=( (dmic_buffer[i]>>8) &0x00ff );
+			buffer[i*2+0]=( dmic_buffer[i] &0x00ff );
+		 }
+		spi_mx25r.writeEnable();
+		while(!(spi_mx25r.readStatus()&0x02));
+		spi_mx25r.programPage(0+times*256,buffer,256);
+		while((spi_mx25r.readStatus()&0x03));
+		times++;
+		spi_mx25r.writeEnable();
+		while(!(spi_mx25r.readStatus()&0x02));
+		spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[256],256);
+		while((spi_mx25r.readStatus()&0x03));			 
+		times++;
+		spi_mx25r.writeEnable();
+		while(!(spi_mx25r.readStatus()&0x02));
+		spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[512],256);
+		while((spi_mx25r.readStatus()&0x03));
+		times++;
+		spi_mx25r.writeEnable();
+		while(!(spi_mx25r.readStatus()&0x02));
+		spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[768],256);
+		while((spi_mx25r.readStatus()&0x03));			 
+		times++;	
 			 
-			 spi_mx25r.writeEnable();
-			 while(!(spi_mx25r.readStatus()&0x02));
-			 spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[1024],256);
-			 while((spi_mx25r.readStatus()&0x03));			 
-			 times++;
-						 spi_mx25r.writeEnable();
-			 while(!(spi_mx25r.readStatus()&0x02));
-			 spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[1280],256);
-			 while((spi_mx25r.readStatus()&0x03));
-			 	times++;
-			 spi_mx25r.writeEnable();
-			 while(!(spi_mx25r.readStatus()&0x02));
-			 spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[1536],256);
-			 while((spi_mx25r.readStatus()&0x03));			 
-			 times++;	
-			 			 spi_mx25r.writeEnable();
-			 while(!(spi_mx25r.readStatus()&0x02));
-			 spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[1792],256);
-			 while((spi_mx25r.readStatus()&0x03));
-			 	times++;
-			
+		spi_mx25r.writeEnable();
+		while(!(spi_mx25r.readStatus()&0x02));
+		spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[1024],256);
+		while((spi_mx25r.readStatus()&0x03));			 
+		times++;
+		spi_mx25r.writeEnable();
+		while(!(spi_mx25r.readStatus()&0x02));
+		spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[1280],256);
+		while((spi_mx25r.readStatus()&0x03));
+		times++;
+		spi_mx25r.writeEnable();
+		while(!(spi_mx25r.readStatus()&0x02));
+		spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[1536],256);
+	  while((spi_mx25r.readStatus()&0x03));			 
+		times++;	
+		spi_mx25r.writeEnable();
+		 while(!(spi_mx25r.readStatus()&0x02));
+		spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[1792],256);
+		while((spi_mx25r.readStatus()&0x03));
+		times++;			
 		}
-			else if(flag1==2)
-			{
-				
-		
+		else if(flag1==2)
+		{			
 			 for(int i=0;i<1024;i++)
 			 {
 					buffer[i*2+1]=( (dmic_buffer[AUDIO_SAMPLES_STEP_ALGO+i]>>8) &0x00ff );
@@ -189,17 +157,17 @@ void save_data()
 			 while(!(spi_mx25r.readStatus()&0x02));
 			 spi_mx25r.programPage(0+times*256,buffer,256);
 			 while((spi_mx25r.readStatus()&0x03));
-			 	times++;
+			 times++;
 			 spi_mx25r.writeEnable();
 			 while(!(spi_mx25r.readStatus()&0x02));
 			 spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[256],256);
 			 while((spi_mx25r.readStatus()&0x03));			 
 			 times++;
-						 spi_mx25r.writeEnable();
+			spi_mx25r.writeEnable();
 			 while(!(spi_mx25r.readStatus()&0x02));
 			 spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[512],256);
 			 while((spi_mx25r.readStatus()&0x03));
-			 	times++;
+			 times++;
 			 spi_mx25r.writeEnable();
 			 while(!(spi_mx25r.readStatus()&0x02));
 			 spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[768],256);
@@ -211,7 +179,7 @@ void save_data()
 			 spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[1024],256);
 			 while((spi_mx25r.readStatus()&0x03));			 
 			 times++;
-						 spi_mx25r.writeEnable();
+			 spi_mx25r.writeEnable();
 			 while(!(spi_mx25r.readStatus()&0x02));
 			 spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[1280],256);
 			 while((spi_mx25r.readStatus()&0x03));
@@ -221,12 +189,11 @@ void save_data()
 			 spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[1536],256);
 			 while((spi_mx25r.readStatus()&0x03));			 
 			 times++;	
-			 			 spi_mx25r.writeEnable();
+			 spi_mx25r.writeEnable();
 			 while(!(spi_mx25r.readStatus()&0x02));
 			 spi_mx25r.programPage(0+times*256,(uint8_t *)&buffer[1792],256);
 			 while((spi_mx25r.readStatus()&0x03));
-			 	times++;
-			 
+			times++;			 
 			}		
 			flag1=0;		
 }
@@ -257,7 +224,6 @@ void control_led(char *a)
 			b=b+2;
 		}
 	}
-
 }
 
 
@@ -267,7 +233,7 @@ int connect(char *uri)
     const char * host_ip1=wifi.gethostbyname(uri);
 	  pc.printf("host_ip=%s\r\n",host_ip1);
 	  wifi.addre=host_ip1;  
-//		host_ip1="111.13.105.93";
+//	host_ip1="111.13.105.93";
 	
     int value=tcpsocket.connect(host_ip1, 80);
 	  return value;
@@ -306,9 +272,7 @@ int main( void )
 		while(1)
 		{		
 			c=1;
-//			ticker1.attach(&detect1,10);
-			ticker.attach(&detect,0.2);
-		
+			ticker.attach(&detect,0.2);		
 		  times=0;			
 			for(int i=0;i<3;i++)
 			{
@@ -316,7 +280,6 @@ int main( void )
 					spi_mx25r.blockErase(0+64*1024*i);
 			}
 			pc.printf("erase\r\n");	
-
 			num=0;	
 			flag3=0;
 			while(c)
@@ -333,15 +296,12 @@ int main( void )
 				break; //the voice recode exceed 15s discard it. 
 		
 			}
-//			ticker1.detach();
 			ticker.detach();
-//			rdRange1(0,256*times);
 			Timer t;		
 			t.start();
 			sprintf(req,SIMPLE_POST_REQUEST2,256*times);
 			
 			while(connect(uri1)!=0);
-//		led1=1;
 			tcpsocket.send(req, strlen(req));
 			rdRange(0,256*(times));
 			rcount = tcpsocket.recv(rbuffer, sizeof rbuffer);
