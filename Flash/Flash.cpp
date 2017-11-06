@@ -265,16 +265,16 @@ void SPI_MX25R::chipErase(void)                     // Chip Erase
     // poll in main
 }
 
-uint8_t * SPI_MX25R::read2K(int addr,int n)                  // Single Byte Read
+uint8_t * SPI_MX25R::readNK(int addr,int n)                  // Single Byte Read
 {  
-	  data1=new uint8_t[16385] ; 
+	  data1=new uint8_t[N] ; 
 	  uint32_t rx_data;
     m_cs = CS_LOW ;
     m_spi.write(CMD_FREAD) ;                         // send 03h
     m_spi.write((addr >> 16)&0xFF) ;
     m_spi.write((addr >>  8)&0xFF) ;
     m_spi.write(addr & 0xFF); 
-	  for(int i=0;i<16385;i++)
+	  for(int i=0;i<N;i++)
 	  {
 			SPI_WriteData(SPI5, (uint16_t)DUMMY, kSPI_FrameAssert);
 			while(!(SPI_GetStatusFlags(SPI5) & kSPI_RxNotEmptyFlag));
