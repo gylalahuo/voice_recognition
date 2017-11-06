@@ -10,3 +10,6 @@ There are some folders in this project。
 5、mxchip-wifi-at-driver： wifi dirver
 
 
+How to use：
+use mbed cli download it。and  input in cmd.exe mbed export -i uvision -m LPC54114 .then you will see a keil project in current folder. now compiler it ,test it. 
+
