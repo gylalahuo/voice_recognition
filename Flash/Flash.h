@@ -178,7 +178,7 @@ public:
   uint32_t readConfig(void) ;
   uint8_t readSFDP(int addr) ;        
   uint8_t readFREAD(int addr) ; 
-	uint8_t * SPI_MX25R::read2K(int addr,int n) ;
+  uint8_t * readNK(int addr,int n) ;
   uint8_t read8(int addr) ;
   void write8(int addr, uint8_t data) ;
   private:
